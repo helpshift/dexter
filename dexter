@@ -25,7 +25,7 @@ import logging
 import requests
 
 
-__VERSION__ = 1
+__VERSION__ = 2
 MANIFEST_PACKAGE_NAME = 'com.unity3d.player'
 STD_ANDROID_DIR = 'Assets/Plugins/Android'
 
