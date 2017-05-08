@@ -47,7 +47,7 @@ def log_level(verbosity):
 
 @contextmanager
 def open_zip(filepath):
-    with open(filepath) as f:
+    with open(filepath, 'rb') as f:
         yield zipfile.ZipFile(f)
 
 
