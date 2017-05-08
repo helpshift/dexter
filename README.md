@@ -8,29 +8,27 @@ https://developers.helpshift.com/unity/troubleshooting-android/#dex-64k-issue
 ## NOTE:
 * This script refactors the folder structure and the AndroidManifest.xml files of the Android libraries in your project. The app needs to be thoroughly tested after executing the script. 
 * Updating the refactored plugins can have issues. A Unity plugin/android library upgrade generally looks for updating a predefined folder/file path. Since this script can potentially change the folder/file structure, upgrading plugins can have issues. Update of any plugin/library needs to be thoroughly tested for integration and functionality.
-* Although the script itself checks for updates, you should always check that you're using the latest version of the script. 
+* Although the script itself checks for updates, you should always check that you're using the latest version of the script.
 
-## Prerequisites
-Set executable permission for the script. You can set it with the following command: 'chmod +x dexter' 
-      2. Python 2.7.10 or higher version. Install python from here: https://www.python.org/downloads/
-      3. The following packages need to be installed:
-1. yaml
-2. json
-3. requests
-4. shutil
-5. xml.dom.minidom
-6. logging
-7. argparse
-8. zipfile
-9. contextlib
+## Setup/Installation
 
-If any of the above are not installed on your system, you can install them with the following command:
+* Make sure you are running Python version `2.7.x`.
 
-pip install `<package-name>`
+* Make sure pip is installed. If not, follow instructions here -
+  https://packaging.python.org/installing/
 
-If you don't have the "pip" tool installed, you can follow the steps mentioned here: 
+* `dexter` depends on a few external Python libs, which can be
+  installed by running the following command,
 
-https://packaging.python.org/installing/
+  ```bash
+      pip install requests==2.7.0 PyYAML==3.10
+  ```
+
+* Make the script executable
+
+  ```bash
+      chmod u+x dexter
+  ```
 
 ## Script arguments
 | Argument  | Description |
