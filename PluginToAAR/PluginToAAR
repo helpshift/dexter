@@ -1,0 +1,108 @@
+#! /usr/bin/env python
+# Copyright 2017 Helpshift, Inc.
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
+import sys
+import shutil
+import argparse
+import logging
+import requests
+import json
+from subprocess import call
+
+
+def create_backup(dirpath, destination_dir):
+    bkp_dir_name = "{0}_bkp".format(os.path.basename(dirpath))
+    destination_backup_path = os.path.join(destination_dir, bkp_dir_name)
+    logging.info('Creating backup of "{0}" at {1}'.format(dirpath, destination_backup_path))
+
+    shutil.copytree(dirpath, destination_backup_path)
+    return destination_backup_path
+
+def generate_aar(unzipped_folder_path):
+    # Set current dir to unzipped_folder_path
+    cwd = os.getcwd()
+    os.chdir(unzipped_folder_path)
+
+    # Make aar from folder with the "jar cvf" command
+    call(["jar", "cvf", "Helpshift.aar","."])
+
+    # Reset to original working directory
+    os.chdir(cwd)
+
+    # Return the generate aar path
+    return os.path.join(unzipped_folder_path, "Helpshift.aar")
+
+def script_update_available() :
+    logging.info('Checking for updates...')
+
+    try:
+        # Get properties file from git
+        url = 'https://raw.githubusercontent.com/helpshift/dexter/master/PluginToAAR/properties'
+        propertiesData = requests.get(url)
+
+        # raise exception for failed request.
+        propertiesData.raise_for_status()
+
+        # Load text as json
+        remoteVersion = propertiesData.json()['version']
+
+        # Check the current version is the latest
+        return __VERSION__ < remoteVersion
+    except Exception, e:
+        logging.info('Script update check encountered error : ' + str(e))
+        return False
+
+def main(args):
+    # Exit if script update is available
+    scriptUpdateAvailable = script_update_available()
+    if scriptUpdateAvailable:
+        # Terminate since we want to script to run only if its the latest version
+        logging.info('New version available. Please download the latest version from https://github.com/helpshift/dexter/tree/master/PluginToAAR')
+        return 1
+
+    assets_dir = os.path.join(args.project_dir, 'Assets')
+    android_plugin_path = os.path.join(args.project_dir, os.path.join('Assets', 'Plugins', 'Android'))
+
+
+    # Path to helpshift directory
+    helpshift_dir = os.path.join(android_plugin_path, 'helpshift')
+
+    # Create backup of the helpshift dir since we are going to delete it
+    helpshift_copy_path = create_backup(helpshift_dir, args.project_dir)
+
+    # Make copy of backup folder since we are going to delete .meta files.
+    helpshift_aar_unzipped = os.path.join(assets_dir, 'helpshift_aar_unzipped')
+    shutil.copytree(helpshift_copy_path, helpshift_aar_unzipped, ignore=shutil.ignore_patterns('*.meta'))
+
+    # Generate the aar file from folder.
+    aar_path = generate_aar(helpshift_aar_unzipped)
+    logging.info('Helpshift AAR generated : ' + aar_path)
+
+    # Move the aar file to Assets/Plugins/Android/
+    shutil.move(aar_path, android_plugin_path)
+
+    # Delete the helpshift folder since now we have the aar file.
+    shutil.rmtree(helpshift_dir)
+    shutil.rmtree(helpshift_aar_unzipped)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--project-dir', default=os.getcwd(),
+                        help='Path to the project directory [Default: pwd]')
+    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    args = parser.parse_args()
+    sys.exit(main(args))
