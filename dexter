@@ -72,10 +72,18 @@ def is_android_enabled(meta_filepath):
     """
     with open(meta_filepath) as f:
         data = yaml.load(f)
-        is_enabled = data.get('PluginImporter', {}) \
-                         .get('platformData', {}) \
-                         .get('Android', {}) \
-                         .get('enabled', 0)
+        platform_data = data.get('PluginImporter', {}) \
+                            .get('platformData', {})
+        try:
+            android_data = platform_data.get('Android', {})
+        except AttributeError:
+            is_enabled = 0
+            android_data = [pd for pd in platform_data
+                            if 'Android' in pd['first']]
+            if len(android_data) == 1:
+                is_enabled = android_data[0]['second']['enabled']
+        else:
+            is_enabled = android_data.get('enabled', 0)
         return is_enabled == 1
 
 
