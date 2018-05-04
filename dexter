@@ -25,7 +25,7 @@ import logging
 import requests
 
 
-__VERSION__ = 2
+__VERSION__ = 3
 MANIFEST_PACKAGE_NAME = 'com.unity3d.player'
 STD_ANDROID_DIR = os.path.join('Assets', 'Plugins', 'Android')
 
